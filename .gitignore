@@ -26,3 +26,8 @@ demo/sentinel.db
 /sentinel.db-shm
 /sentinel.db-wal
 docs/pnpm-workspace.yaml
+
+# Local agents and scripts
+.agents/
+AGENTS.md
+fix_strings.py
