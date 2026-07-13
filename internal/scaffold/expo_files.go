@@ -2221,6 +2221,7 @@ export const api = new ApiClient();
 func expoAuthProvider() string {
 	return `import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import * as WebBrowser from "expo-web-browser";
+import * as Linking from "expo-linking";
 import { api, API_URL } from "./api";
 
 interface User {
@@ -2287,7 +2288,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const loginWithGoogle = useCallback(async () => {
-    const callbackUrl = "myapp://callback";
+    const callbackUrl = Linking.createURL("callback");
     const result = await WebBrowser.openAuthSessionAsync(
       ` + "`" + `${API_URL}/auth/oauth/google?redirect_uri=${encodeURIComponent(callbackUrl)}` + "`" + `,
       callbackUrl

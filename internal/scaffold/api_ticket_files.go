@@ -485,6 +485,7 @@ func ticketMailGo() string {
 import (
 	"context"
 	"fmt"
+	"html"
 	"log"
 	"os"
 	"time"
@@ -532,8 +533,8 @@ func SendTicketCreatedEmail(m *mail.Mailer, t *models.Ticket, creator *models.Us
     </a>
   </p>
 </body></html>` + "`" + `,
-		t.Subject, t.Priority, defaultIfEmpty(t.Labels, "—"),
-		creatorLine, t.Description, dashURL, t.ID,
+		html.EscapeString(t.Subject), html.EscapeString(t.Priority), html.EscapeString(defaultIfEmpty(t.Labels, "—")),
+		html.EscapeString(creatorLine), html.EscapeString(t.Description), dashURL, t.ID,
 	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

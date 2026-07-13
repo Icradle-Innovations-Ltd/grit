@@ -1020,7 +1020,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { ResourceDefinition, FieldDefinition, GroupDefinition } from "@/lib/resource";
-import { FieldRenderer } from "@/components/forms/form-builder";
+import { FieldRenderer, buildDefaults } from "@/components/forms/form-builder";
 import { useResourceItem, usePatchResource } from "@/hooks/use-resource";
 import { ChevronLeft, Loader2 } from "@/lib/icons";
 
@@ -1105,10 +1105,7 @@ function GroupCard({ resource, group, record, id }: GroupCardProps) {
   const groupFields: FieldDefinition[] = resource.form.fields.filter((f) =>
     group.fields.includes(f.key)
   );
-  const defaults: Record<string, unknown> = {};
-  for (const f of groupFields) {
-    defaults[f.key] = record[f.key] ?? "";
-  }
+  const defaults = buildDefaults(groupFields, record);
 
   const {
     control,
@@ -1987,7 +1984,7 @@ function refsToUploaded(refs: FileRef[] | unknown): UploadedFile[] {
 function uploadedToRef(u: UploadedFile): FileRef {
   return {
     url: u.url,
-    key: extractKeyFromUrl(u.url),
+    key: u.key || extractKeyFromUrl(u.url),
     name: u.name,
     mime: u.type,
     size: u.size,

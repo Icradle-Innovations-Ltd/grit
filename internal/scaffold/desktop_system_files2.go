@@ -172,6 +172,10 @@ function SystemBlogDetailPage() {
     setPublished(!!data.published);
   }, [data]);
 
+  if (!isLoading && !data) {
+    return <div className="text-[13px] text-text-muted">Post not found (or offline).</div>;
+  }
+
   const save = useMutation({
     mutationFn: () => apiClient.put("/admin/blogs/" + id, { title, excerpt, content, published }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["system", "blog", id] }),
@@ -515,7 +519,12 @@ function SystemDashboardSettingsPage() {
     for (const w of allWidgets) init[w] = stored[w] !== false;
     setEnabled(init);
     // Best-effort server load (ignored offline).
-    apiClient.get("/dashboard-layout").catch(() => undefined);
+    apiClient.get("/dashboard-layout")
+      .then(({ data }) => {
+        const serverWidgets = data?.data?.widgets;
+        if (serverWidgets) setEnabled((prev) => ({ ...prev, ...serverWidgets }));
+      })
+      .catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

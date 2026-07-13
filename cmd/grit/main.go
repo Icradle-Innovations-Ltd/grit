@@ -92,8 +92,11 @@ func packCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			printLogo()
 			resource := args[0]
-			cwd, _ := os.Getwd()
-			err := generate.PackAdminResourceTable(cwd, resource)
+			cwd, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+			err = generate.PackAdminResourceTable(cwd, resource)
 			if err != nil {
 				return err
 			}

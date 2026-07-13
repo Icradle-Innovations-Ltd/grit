@@ -376,7 +376,12 @@ func (h *TOTPHandler) Enable(c *gin.Context) {
 
 	// Upsert the TwoFactorConfig
 	var config models.TwoFactorConfig
-	h.DB.Where("user_id = ?", userID).FirstOrCreate(&config, models.TwoFactorConfig{UserID: userID})
+	if err := h.DB.Where("user_id = ?", userID).FirstOrCreate(&config, models.TwoFactorConfig{UserID: userID}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"code": "TOTP_ERROR", "message": "Failed to configure two-factor authentication"},
+		})
+		return
+	}
 
 	config.Secret = req.Secret
 	config.Enabled = true
@@ -707,7 +712,7 @@ func (h *TOTPHandler) createTrustedDevice(c *gin.Context, userID string) {
 		int(totp.TrustedDeviceDuration.Seconds()),
 		"/",
 		"",    // domain
-		false, // secure (set true in production)
+		c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https", // secure
 		true,  // httpOnly
 	)
 }

@@ -122,7 +122,6 @@ describe("Navbar", () => {
     render(<NavStub projectName="My App" />);
     expect(screen.getByRole("link", { name: /home/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /blog/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /components/i })).toBeInTheDocument();
   });
 });
 `

@@ -155,7 +155,7 @@ export default function DataTable({
                   key={col.key}
                   onClick={() => handleSort(col)}
                   className={cn(
-                    "px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider",
+                    "group px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider",
                     col.sortable && "cursor-pointer select-none hover:text-foreground transition-colors"
                   )}
                 >

@@ -13,6 +13,7 @@ import { useUpdateProfile, useChangePassword } from "@/hooks/use-profile";
 import { User, Briefcase, Lock, Trash2, Save, Loader2, Upload } from "@/lib/icons";
 import { DeleteAccountDialog } from "@/components/profile/delete-account-dialog";
 import { uploadFile } from "@/lib/api-client";
+import { toast } from "sonner";
 
 const PersonalInfoSchema = z.object({
   first_name: z.string().min(2, "First name must be at least 2 characters"),
@@ -62,7 +63,7 @@ export default function ProfilePage() {
         updateProfile.mutate({ avatar: url });
       }
     } catch {
-      // Upload failed silently
+      toast.error("Failed to upload avatar");
     } finally {
       setAvatarUploading(false);
       if (avatarInputRef.current) avatarInputRef.current.value = "";
@@ -109,12 +110,22 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  const onPersonalSubmit = (data: PersonalInfoValues) => {
-    updateProfile.mutate(data);
+  const onPersonalSubmit = async (data: PersonalInfoValues) => {
+    try {
+      await updateProfile.mutateAsync(data);
+      toast.success("Personal information updated");
+    } catch {
+      toast.error("Failed to update personal information");
+    }
   };
 
-  const onProfessionalSubmit = (data: ProfessionalInfoValues) => {
-    updateProfile.mutate(data);
+  const onProfessionalSubmit = async (data: ProfessionalInfoValues) => {
+    try {
+      await updateProfile.mutateAsync(data);
+      toast.success("Professional information updated");
+    } catch {
+      toast.error("Failed to update professional information");
+    }
   };
 
   const onPasswordSubmit = (data: ChangePasswordValues) => {
@@ -231,16 +242,16 @@ export default function ProfilePage() {
               )}
             </div>
             <div className="flex items-center justify-between">
-              {updateProfile.isSuccess && (
+              {personalForm.formState.isSubmitSuccessful && (
                 <p className="text-sm text-success">Profile updated successfully.</p>
               )}
               <div className="ml-auto">
                 <button
                   type="submit"
-                  disabled={updateProfile.isPending}
+                  disabled={personalForm.formState.isSubmitting}
                   className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 transition-colors"
                 >
-                  {updateProfile.isPending ? (
+                  {personalForm.formState.isSubmitting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Save className="h-4 w-4" />
@@ -282,10 +293,10 @@ export default function ProfilePage() {
             <div className="flex justify-end">
               <button
                 type="submit"
-                disabled={updateProfile.isPending}
+                disabled={professionalForm.formState.isSubmitting}
                 className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 transition-colors"
               >
-                {updateProfile.isPending ? (
+                {professionalForm.formState.isSubmitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Save className="h-4 w-4" />

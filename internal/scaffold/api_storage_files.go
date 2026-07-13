@@ -46,6 +46,7 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 
 	"{{MODULE}}/internal/config"
 )
@@ -104,9 +105,15 @@ func New(cfg config.StorageConfig) (*Storage, error) {
 	})
 	if err != nil {
 		// Try to create the bucket
-		_, createErr := client.CreateBucket(ctx, &s3.CreateBucketInput{
+		input := &s3.CreateBucketInput{
 			Bucket: aws.String(cfg.Bucket),
-		})
+		}
+		if cfg.Region != "us-east-1" {
+			input.CreateBucketConfiguration = &types.CreateBucketConfiguration{
+				LocationConstraint: types.BucketLocationConstraint(cfg.Region),
+			}
+		}
+		_, createErr := client.CreateBucket(ctx, input)
 		if createErr != nil {
 			return nil, fmt.Errorf("bucket %q not accessible and cannot be created: %w", cfg.Bucket, err)
 		}
@@ -176,13 +183,18 @@ func (s *Storage) Delete(ctx context.Context, key string) error {
 
 // GetURL returns the public URL for a stored file.
 func (s *Storage) GetURL(key string) string {
-	endpoint := strings.TrimRight(s.cfg.Endpoint, "/")
-	// Encode each path segment individually to preserve forward slashes
 	segments := strings.Split(key, "/")
 	for i, seg := range segments {
 		segments[i] = url.PathEscape(seg)
 	}
-	return fmt.Sprintf("%s/%s/%s", endpoint, s.bucket, strings.Join(segments, "/"))
+	escapedKey := strings.Join(segments, "/")
+
+	if s.cfg.Endpoint == "" {
+		return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.bucket, s.cfg.Region, escapedKey)
+	}
+
+	endpoint := strings.TrimRight(s.cfg.Endpoint, "/")
+	return fmt.Sprintf("%s/%s/%s", endpoint, s.bucket, escapedKey)
 }
 
 // GetSignedURL returns a pre-signed URL valid for the given duration.
@@ -515,7 +527,8 @@ func (h *UploadHandler) Create(c *gin.Context) {
 		return
 	}
 
-	userID, _ := c.Get("user_id")
+	userIDVal, _ := c.Get("user_id")
+	userID, _ := userIDVal.(string)
 
 	upload := models.Upload{
 		Filename:     filename,
@@ -524,7 +537,7 @@ func (h *UploadHandler) Create(c *gin.Context) {
 		Size:         header.Size,
 		Path:         key,
 		URL:          h.Storage.GetURL(key),
-		UserID:       userID.(string),
+		UserID:       userID,
 	}
 
 	if err := h.DB.Create(&upload).Error; err != nil {
@@ -791,7 +804,8 @@ func (h *UploadHandler) CompleteUpload(c *gin.Context) {
 		return
 	}
 
-	userID, _ := c.Get("user_id")
+	userIDVal, _ := c.Get("user_id")
+	userID, _ := userIDVal.(string)
 
 	upload := models.Upload{
 		Filename:     filepath.Base(req.Key),
@@ -800,7 +814,7 @@ func (h *UploadHandler) CompleteUpload(c *gin.Context) {
 		Size:         req.Size,
 		Path:         req.Key,
 		URL:          h.Storage.GetURL(req.Key),
-		UserID:       userID.(string),
+		UserID:       userID,
 	}
 
 	if err := h.DB.Create(&upload).Error; err != nil {

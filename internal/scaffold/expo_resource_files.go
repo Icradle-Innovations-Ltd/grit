@@ -95,7 +95,10 @@ export default function BlogsScreen() {
         subtitle="Posts and articles"
         showBack
         right={
-          <Pressable onPress={() => router.push("/blogs/new")} hitSlop={8}>
+          <Pressable onPress={() => router.push("/blogs/new")} hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Create blog"
+          >
             <Ionicons name="add-circle" size={28} color="#6c5ce7" />
           </Pressable>
         }
@@ -223,7 +226,7 @@ export default function CreateBlogScreen() {
         </View>
 
         <Pressable onPress={onSubmit} disabled={saving} className="bg-[#6c5ce7] rounded-full py-4 items-center mt-2" style={{ opacity: saving ? 0.7 : 1 }}>
-          {saving ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-semibold text-[15px]">Publish post</Text>}
+          {saving ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-semibold text-[15px]">{published ? "Publish post" : "Save draft"}</Text>}
         </Pressable>
       </ScrollView>
     </View>
@@ -260,14 +263,14 @@ export default function CreateUserScreen() {
   const onSubmit = async () => {
     setError("");
     if (!firstName.trim() || !lastName.trim()) return setError("Name is required");
-    if (!email.includes("@")) return setError("Enter a valid email");
+    if (!email.trim()) return setError("Email is required");
     if (password.length < 6) return setError("Password must be at least 6 characters");
     setSaving(true);
     try {
       await api.post("/admin/users", {
         first_name: firstName,
         last_name: lastName,
-        email,
+        email: email.trim(),
         password,
         role,
         active,

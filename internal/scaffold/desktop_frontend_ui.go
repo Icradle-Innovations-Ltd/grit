@@ -283,6 +283,7 @@ export default function Dialog({
             <button
               onClick={onClose}
               className="text-text-muted hover:text-foreground transition-colors"
+              aria-label="Close"
             >
               &#x2715;
             </button>

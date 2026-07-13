@@ -61,7 +61,10 @@ func (s *AuthService) Register(name, email, password string) (*models.AuthRespon
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	token := generateToken()
+	token, err := generateToken()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token: %w", err)
+	}
 	return &models.AuthResponse{User: user, Token: token}, nil
 }
 
@@ -78,7 +81,10 @@ func (s *AuthService) Login(email, password string) (*models.AuthResponse, error
 		return nil, fmt.Errorf("invalid email or password")
 	}
 
-	token := generateToken()
+	token, err := generateToken()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token: %w", err)
+	}
 	return &models.AuthResponse{User: user, Token: token}, nil
 }
 
@@ -103,10 +109,12 @@ func (s *AuthService) UpdateUser(id string, name, email string) (*models.User, e
 	return &user, nil
 }
 
-func generateToken() string {
+func generateToken() (string, error) {
 	b := make([]byte, 32)
-	rand.Read(b)
-	return hex.EncodeToString(b)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
 }
 `
 }

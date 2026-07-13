@@ -230,7 +230,8 @@ export function AuthSubmit({ disabled, children }: { disabled?: boolean; childre
 // desktopAtlasAuthShell — split-static: hero panel on the left, form right.
 // The default, and a direct port of the admin's AtlasAuthShell.
 func desktopAtlasAuthShell() string {
-	return `import { Link } from "@tanstack/react-router";
+	return `import type { CSSProperties } from "react";
+import { Link } from "@tanstack/react-router";
 import { brand } from "@repo/shared/brand.config";
 import { BrandMark } from "./BrandMark";
 import { authVars, switchLinks, type ShellProps } from "./AuthShell";
@@ -248,7 +249,7 @@ export function AtlasAuthShell({ theme, mode, title, subtitle, children, errorMe
         background: t.bg,
         color: t.fg,
         ...authVars(theme),
-      } as React.CSSProperties}
+      } as CSSProperties}
     >
       {/* Left hero panel */}
       <div
@@ -313,7 +314,8 @@ export function AtlasAuthShell({ theme, mode, title, subtitle, children, errorMe
 
 // desktopAuroraAuthShell — centered: one card on a pastel wallpaper.
 func desktopAuroraAuthShell() string {
-	return `import { Link } from "@tanstack/react-router";
+	return `import type { CSSProperties } from "react";
+import { Link } from "@tanstack/react-router";
 import { BrandMark } from "./BrandMark";
 import { authVars, switchLinks, type ShellProps } from "./AuthShell";
 
@@ -338,7 +340,7 @@ export function AuroraAuthShell({ theme, mode, title, subtitle, children, errorM
         background: wallpaper,
         color: t.fg,
         ...authVars(theme),
-      } as React.CSSProperties}
+      } as CSSProperties}
     >
       <div
         className="w-full max-w-md rounded-2xl border shadow-xl p-8 space-y-6"
@@ -378,7 +380,8 @@ export function AuroraAuthShell({ theme, mode, title, subtitle, children, errorM
 
 // desktopPulseAuthShell — split-carousel: form left, editorial hero right.
 func desktopPulseAuthShell() string {
-	return `import { Link } from "@tanstack/react-router";
+	return `import type { CSSProperties } from "react";
+import { Link } from "@tanstack/react-router";
 import { brand } from "@repo/shared/brand.config";
 import { BrandMark } from "./BrandMark";
 import { authVars, switchLinks, type ShellProps } from "./AuthShell";
@@ -396,7 +399,7 @@ export function PulseAuthShell({ theme, mode, title, subtitle, children, errorMe
         background: t.bg,
         color: t.fg,
         ...authVars(theme),
-      } as React.CSSProperties}
+      } as CSSProperties}
     >
       {/* Left form panel */}
       <div className="flex flex-1 items-center justify-center px-6 py-12 lg:px-12">
