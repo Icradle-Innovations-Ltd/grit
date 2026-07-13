@@ -420,7 +420,8 @@ func singleFrontendPackageJSON(opts Options) string {
     "lucide-react": "^0.468.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^2.6.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@tanstack/react-router-devtools": "^1.93.0",

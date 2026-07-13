@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/MUKE-coder/grit/v3/internal/project"
 )
 
 // Sync parses Go model files and regenerates TypeScript types and Zod schemas.
@@ -17,13 +19,30 @@ func Sync() error {
 		return err
 	}
 
-	modelsDir := filepath.Join(root, "apps", "api", "internal", "models")
+	info, err := project.DetectProjectFrom(root)
+	if err != nil {
+		return fmt.Errorf("detect project: %w", err)
+	}
+
+	var modelsDir, sharedRoot string
+	switch info.Type {
+	case project.ProjectSingle:
+		modelsDir = filepath.Join(root, "internal", "models")
+		sharedRoot = filepath.Join(root, "frontend", "src")
+	case project.ProjectDesktop:
+		modelsDir = filepath.Join(root, "internal", "models")
+		sharedRoot = filepath.Join(root, "frontend", "src")
+	default:
+		// Monorepo (Web / API-only / etc)
+		modelsDir = filepath.Join(root, "apps", "api", "internal", "models")
+		sharedRoot = filepath.Join(root, "packages", "shared")
+	}
+
 	if !dirExists(modelsDir) {
 		return fmt.Errorf("models directory not found at %s", modelsDir)
 	}
 
-	sharedRoot := filepath.Join(root, "packages", "shared")
-	if !dirExists(sharedRoot) {
+	if !dirExists(sharedRoot) && info.Type != project.ProjectSingle && info.Type != project.ProjectDesktop {
 		return fmt.Errorf("shared package not found at %s — sync requires a monorepo project", sharedRoot)
 	}
 

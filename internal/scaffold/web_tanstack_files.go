@@ -191,7 +191,8 @@ func webTanStackTSConfig() string {
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@repo/shared/*": ["./src/*"]
     },
     "baseUrl": "."
   },
