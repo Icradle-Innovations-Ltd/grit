@@ -2312,64 +2312,6 @@ function WinControl({
 `
 }
 
-func desktopClientSidebar() string {
-	return `import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, User, Settings, LayoutGrid } from "lucide-react";
-
-// Fixed-width desktop sidebar. NOT collapsible — desktop windows are wide
-// enough, and a fixed sidebar is more predictable for power users.
-export function Sidebar() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-
-  const items = [
-    { to: "/app", label: "Dashboard", icon: Home },
-    { to: "/app/profile", label: "Profile", icon: User },
-    { to: "/app/settings", label: "Settings", icon: Settings },
-  ];
-
-  return (
-    <aside className="w-sidebar shrink-0 border-r border-border-subtle bg-surface flex flex-col">
-      {/* Workspace header */}
-      <div className="px-4 py-3 border-b border-border-subtle">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-md bg-accent/10 flex items-center justify-center">
-            <LayoutGrid className="h-3.5 w-3.5 text-accent" />
-          </div>
-          <span className="text-[13px] font-semibold text-foreground">Workspace</span>
-        </div>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 p-3 space-y-0.5">
-        {items.map((item) => {
-          const Icon = item.icon;
-          const active = pathname === item.to || (item.to !== "/app" && pathname.startsWith(item.to));
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={` + "`" + `flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors ${
-                active
-                  ? "bg-accent/10 text-accent"
-                  : "text-foreground-secondary hover:bg-surface-hover hover:text-foreground"
-              }` + "`" + `}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div className="px-4 py-3 border-t border-border-subtle text-[11px] text-foreground-muted">
-        Built with Grit
-      </div>
-    </aside>
-  );
-}
-`
-}
 
 func desktopClientTopbar() string {
 	return `import { Search } from "lucide-react";

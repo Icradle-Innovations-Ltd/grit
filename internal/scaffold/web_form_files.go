@@ -6,7 +6,7 @@ import (
 
 // writeWebFormFiles scaffolds the public form sharing UI into the Next.js web app.
 // It outputs to apps/web/app/forms/[token]/page.tsx.
-func writeWebFormFiles(root string, opts Options) error {
+func writeWebFormFiles(root string, _ Options) error {
 	webRoot := filepath.Join(root, "apps", "web")
 	
 	files := map[string]string{

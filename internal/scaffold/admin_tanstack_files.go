@@ -313,7 +313,7 @@ export const Route = createFileRoute('/_auth')({
 `
 }
 
-func adminTanStackLoginRoute(style string) string {
+func adminTanStackLoginRoute(_ string) string {
 	// Reuse the style-specific login page but wrap in TanStack route
 	return `import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
@@ -412,7 +412,7 @@ function LoginPage() {
 `
 }
 
-func adminTanStackSignUpRoute(style string) string {
+func adminTanStackSignUpRoute(_ string) string {
 	return `import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -493,7 +493,7 @@ function SignUpPage() {
 `
 }
 
-func adminTanStackForgotPasswordRoute(style string) string {
+func adminTanStackForgotPasswordRoute(_ string) string {
 	return `import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -572,7 +572,7 @@ export const Route = createFileRoute('/_dashboard')({
 `
 }
 
-func adminTanStackDashboardRoute(style string) string {
+func adminTanStackDashboardRoute(_ string) string {
 	return `import { createFileRoute } from '@tanstack/react-router'
 import { StatsCard } from '@/components/widgets/stats-card'
 import { useAuth } from '@/hooks/use-auth'

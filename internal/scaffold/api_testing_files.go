@@ -273,7 +273,7 @@ export default userJourney
 // dependabotYAML produces the Dependabot config that closes OWASP A03
 // Supply-Chain Failures — automated PRs for vulnerable Go modules, npm
 // packages, and GitHub Actions updates.
-func dependabotYAML(opts Options) string {
+func dependabotYAML(_ Options) string {
 	return `# Dependabot — automated dependency updates.
 # Closes OWASP Top 10:2025 A03 Supply-Chain Failures by surfacing
 # vulnerable dependencies as PRs you can review and merge.

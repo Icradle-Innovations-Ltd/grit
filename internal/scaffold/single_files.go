@@ -132,7 +132,7 @@ func writeSingleRootFiles(root string, opts Options) error {
 	return nil
 }
 
-func singleMainGo(opts Options) string {
+func singleMainGo(_ Options) string {
 	return `package main
 
 import (

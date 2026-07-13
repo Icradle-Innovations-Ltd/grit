@@ -7,8 +7,3 @@ package scaffold
 // The writeScalarFiles function is kept for upgrade compatibility
 // but is now a no-op.
 
-func writeScalarFiles(root string, opts Options) error {
-	// gin-docs is mounted directly in routes.go via gindocs.Mount()
-	// No separate docs files are needed anymore.
-	return nil
-}

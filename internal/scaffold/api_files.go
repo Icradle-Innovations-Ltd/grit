@@ -288,7 +288,7 @@ tmp_dir = "tmp"
 `
 }
 
-func apiMainGo(opts Options) string {
+func apiMainGo(_ Options) string {
 	return `package main
 
 import (

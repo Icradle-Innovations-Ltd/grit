@@ -277,7 +277,7 @@ func upgradeAdminFiles(root string, opts Options, uOpts UpgradeOptions) (int, er
 
 // writeUpgradeFiles writes files, creating directories as needed.
 // Returns the number of files written.
-func writeUpgradeFiles(files map[string]string, force bool) (int, error) {
+func writeUpgradeFiles(files map[string]string, _ bool) (int, error) {
 	count := 0
 	for path, content := range files {
 		if err := writeFile(path, content); err != nil {
