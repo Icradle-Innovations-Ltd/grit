@@ -98,6 +98,21 @@ func writeSingleFrontendFiles(root string, opts Options) error {
 		filepath.Join(feRoot, "src", "components", "money-input.tsx"):            singleMoneyInput(),
 		filepath.Join(feRoot, "src", "components", "combobox.tsx"):               singleCombobox(),
 		filepath.Join(feRoot, "src", "components", "session-expiry-monitor.tsx"): singleSessionExpiryMonitor(),
+
+		// Base schemas and types (usually in packages/shared for monorepos)
+		filepath.Join(feRoot, "src", "schemas", "user.ts"):      sharedUserSchema(),
+		filepath.Join(feRoot, "src", "schemas", "index.ts"):     sharedSchemasIndex(),
+		filepath.Join(feRoot, "src", "types", "user.ts"):        sharedUserTypes(),
+		filepath.Join(feRoot, "src", "types", "api.ts"):         sharedAPITypes(),
+		filepath.Join(feRoot, "src", "types", "index.ts"):       sharedTypesIndex(),
+		filepath.Join(feRoot, "src", "constants", "index.ts"):   sharedConstants(),
+		filepath.Join(feRoot, "src", "types", "upload.ts"):      sharedUploadTypes(),
+		filepath.Join(feRoot, "src", "schemas", "blog.ts"):      sharedBlogSchema(),
+		filepath.Join(feRoot, "src", "types", "blog.ts"):        sharedBlogTypes(),
+		filepath.Join(feRoot, "src", "schemas", "file-ref.ts"):  sharedFileRefSchema(),
+		filepath.Join(feRoot, "src", "types", "file-ref.ts"):    sharedFileRefTypes(),
+		filepath.Join(feRoot, "src", "brand.config.ts"):         sharedBrandConfig(opts),
+
 		filepath.Join(feRoot, "src", "components", "status-badge.tsx"):           singleStatusBadge(),
 		filepath.Join(feRoot, "src", "components", "stats-row.tsx"):              singleStatsRow(),
 		filepath.Join(feRoot, "public", ".gitkeep"):                              "",
