@@ -46,7 +46,7 @@ func main() {
 	rootCmd.AddCommand(addCmd())
 	rootCmd.AddCommand(exposeCmd())
 	rootCmd.AddCommand(startCmd())
-	rootCmd.AddCommand(compileCmd())
+	rootCmd.AddCommand(buildCmd())
 	rootCmd.AddCommand(studioCmd())
 	rootCmd.AddCommand(syncCmd())
 	rootCmd.AddCommand(migrateCmd())
@@ -1332,6 +1332,15 @@ func startCmd() *cobra.Command {
 				c.Stdin = os.Stdin
 				return c.Run()
 			}
+			if info.Type == project.ProjectSingle {
+				// Single app project — run server + single frontend in parallel.
+				frontendDir := filepath.Join(info.Root, "frontend")
+				if _, err := os.Stat(frontendDir); err == nil {
+					return runDevPair(frontendDir, info.Root)
+				}
+				// If no frontend dir, just run the server
+				return runDevPair(info.Root, info.Root)
+			}
 			// Web project — run server + client in parallel.
 			apiDir, err := findAPIDir()
 			if err != nil {
@@ -1545,30 +1554,82 @@ func killProcess(cmd *exec.Cmd) error {
 	return cmd.Process.Kill()
 }
 
-func compileCmd() *cobra.Command {
+func buildCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "compile",
-		Short: "Build desktop application executable",
-		Long:  "Compile the Wails desktop app into a distributable binary. Only available in desktop projects.",
+		Use:     "build",
+		Aliases: []string{"compile"},
+		Short:   "Build the application executable",
+		Long:    "Compile the application into a distributable binary. Currently supports Single and Desktop projects.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			info, err := project.DetectProject()
 			if err != nil {
 				return fmt.Errorf("not inside a Grit project: %w", err)
 			}
-			if info.Type != project.ProjectDesktop {
-				return fmt.Errorf("grit compile is only available in desktop projects (wails.json not found)")
+			
+			if info.Type == project.ProjectSingle {
+				printLogo()
+				purple := color.New(color.FgHiMagenta, color.Bold)
+				purple.Println("\n  Building frontend...")
+				
+				// 1. Build frontend
+				c1 := exec.Command("pnpm", "install")
+				c1.Dir = filepath.Join(info.Root, "frontend")
+				c1.Stdout = os.Stdout
+				c1.Stderr = os.Stderr
+				c1.Stdin = os.Stdin
+				if err := c1.Run(); err != nil {
+					return fmt.Errorf("pnpm install failed: %w", err)
+				}
+				
+				c2 := exec.Command("pnpm", "build")
+				c2.Dir = filepath.Join(info.Root, "frontend")
+				c2.Stdout = os.Stdout
+				c2.Stderr = os.Stderr
+				c2.Stdin = os.Stdin
+				if err := c2.Run(); err != nil {
+					return fmt.Errorf("pnpm build failed: %w", err)
+				}
+				
+				purple.Println("\n  Building Go binary...")
+				
+				binDir := filepath.Join(info.Root, "bin")
+				if err := os.MkdirAll(binDir, 0755); err != nil {
+					return fmt.Errorf("mkdir bin: %w", err)
+				}
+				
+				binName := filepath.Base(info.Root)
+				if runtime.GOOS == "windows" {
+					binName += ".exe"
+				}
+				binPath := filepath.Join(binDir, binName)
+				
+				c3 := exec.Command("go", "build", "-o", binPath, ".")
+				c3.Dir = info.Root
+				c3.Stdout = os.Stdout
+				c3.Stderr = os.Stderr
+				c3.Stdin = os.Stdin
+				if err := c3.Run(); err != nil {
+					return fmt.Errorf("go build failed: %w", err)
+				}
+				
+				purple.Printf("\n  Done! Binary at bin/%s\n", filepath.Base(binPath))
+				return nil
 			}
 
-			printLogo()
-			purple := color.New(color.FgHiMagenta, color.Bold)
-			purple.Println("\n  Building desktop executable...")
+			if info.Type == project.ProjectDesktop {
+				printLogo()
+				purple := color.New(color.FgHiMagenta, color.Bold)
+				purple.Println("\n  Building desktop executable...")
 
-			c := exec.Command("wails", "build")
-			c.Dir = info.Root
-			c.Stdout = os.Stdout
-			c.Stderr = os.Stderr
-			c.Stdin = os.Stdin
-			return c.Run()
+				c := exec.Command("wails", "build")
+				c.Dir = info.Root
+				c.Stdout = os.Stdout
+				c.Stderr = os.Stderr
+				c.Stdin = os.Stdin
+				return c.Run()
+			}
+			
+			return fmt.Errorf("grit build is only available in single and desktop projects")
 		},
 	}
 }

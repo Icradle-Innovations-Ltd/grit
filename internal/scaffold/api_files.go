@@ -66,7 +66,7 @@ func writeAPIFiles(root string, opts Options) error {
 		filepath.Join(apiRoot, "internal", "handlers", "import_job.go"):  importJobHandlerGo(),
 		filepath.Join(apiRoot, "internal", "services", "ticket_mail.go"): ticketMailGo(),
 		filepath.Join(apiRoot, "internal", "routes", "routes.go"):        apiRoutesGo(),
-		filepath.Join(apiRoot, ".air.toml"):                              airConfig(),
+		filepath.Join(apiRoot, ".air.toml"):                              airConfig(opts),
 		// Test files — give the generated API a working test suite out of the box
 		filepath.Join(apiRoot, "internal", "handlers", "auth_test.go"):  apiAuthTestGo(),
 		filepath.Join(apiRoot, "internal", "handlers", "user_test.go"):  apiUserTestGo(),
@@ -256,18 +256,24 @@ tmp/
 `
 }
 
-func airConfig() string {
+func airConfig(opts Options) string {
 	// air v1.64+ deprecated `build.bin` in favour of `build.entrypoint`.
 	// Both name the BUILT binary that air execs after each rebuild —
 	// not the Go source directory. Always use a .exe suffix so Windows
 	// CreateProcess accepts the file (no "open with" dialog); Linux
 	// + macOS treat .exe as just part of the name. One config, every
 	// platform.
-	return `root = "."
+	
+	buildTarget := "./cmd/server"
+	if opts.Architecture == ArchSingle || opts.Architecture == ArchAPI {
+		buildTarget = "."
+	}
+	
+	return fmt.Sprintf(`root = "."
 tmp_dir = "tmp"
 
 [build]
-  cmd = "go build -o ./tmp/server.exe ./cmd/server"
+  cmd = "go build -o ./tmp/server.exe %s"
   entrypoint = "./tmp/server.exe"
   delay = 1000
   exclude_dir = ["tmp", "vendor", "node_modules"]
@@ -285,7 +291,7 @@ tmp_dir = "tmp"
   main = "magenta"
   runner = "green"
   watcher = "cyan"
-`
+`, buildTarget)
 }
 
 func apiMainGo(_ Options) string {

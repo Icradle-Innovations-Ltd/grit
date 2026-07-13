@@ -13,6 +13,7 @@ type ProjectType string
 const (
 	ProjectWeb     ProjectType = "web"
 	ProjectDesktop ProjectType = "desktop"
+	ProjectSingle  ProjectType = "single"
 )
 
 // ProjectInfo holds detected project metadata.
@@ -52,6 +53,14 @@ func DetectProjectFrom(startDir string) (*ProjectInfo, error) {
 			return &ProjectInfo{Root: dir, Type: ProjectWeb, Module: mod}, nil
 		}
 
+		if IsSingle(dir) {
+			mod, err := readModule(filepath.Join(dir, "go.mod"))
+			if err != nil {
+				return nil, fmt.Errorf("reading module in single project: %w", err)
+			}
+			return &ProjectInfo{Root: dir, Type: ProjectSingle, Module: mod}, nil
+		}
+
 		parent := filepath.Dir(dir)
 		if parent == dir {
 			break
@@ -59,7 +68,7 @@ func DetectProjectFrom(startDir string) (*ProjectInfo, error) {
 		dir = parent
 	}
 
-	return nil, fmt.Errorf("not inside a Grit project (no wails.json or turbo.json found)\n\nRun this command from inside a Grit project directory")
+	return nil, fmt.Errorf("not inside a Grit project (no wails.json, turbo.json, or grit.json found)\n\nRun this command from inside a Grit project directory")
 }
 
 // IsDesktop returns true if the directory contains a wails.json file.
@@ -76,6 +85,31 @@ func IsWeb(dir string) bool {
 	}
 	api, err := os.Stat(filepath.Join(dir, "apps", "api"))
 	return err == nil && api.IsDir()
+}
+
+// IsSingle returns true if the directory represents a single-app architecture.
+func IsSingle(dir string) bool {
+	// Primary detection: grit.json with "architecture": "single"
+	if data, err := os.ReadFile(filepath.Join(dir, "grit.json")); err == nil {
+		content := string(data)
+		if strings.Contains(content, `"architecture"`) && strings.Contains(content, `"single"`) {
+			return true
+		}
+	}
+
+	// Fallback: frontend dir exists, go.mod exists, but no apps dir
+	frontend, errF := os.Stat(filepath.Join(dir, "frontend"))
+	if errF == nil && frontend.IsDir() {
+		mod, errM := os.Stat(filepath.Join(dir, "go.mod"))
+		if errM == nil && !mod.IsDir() {
+			apps, errA := os.Stat(filepath.Join(dir, "apps"))
+			if errA != nil || !apps.IsDir() {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func readModule(goModPath string) (string, error) {
