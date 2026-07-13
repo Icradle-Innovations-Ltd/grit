@@ -140,23 +140,6 @@ func (g *Generator) mobileTitleField() string {
 	return "id"
 }
 
-// mobileSubtitleField returns a snake_case field for the list row subtitle,
-// or "" when nothing suitable exists. Skips the title field and only uses
-// plain text-ish fields (never relations or files).
-func (g *Generator) mobileSubtitleField() string {
-	title := g.mobileTitleField()
-	for _, f := range g.Definition.Fields {
-		n := toSnakeCase(f.Name)
-		if n == title {
-			continue
-		}
-		switch FieldType(f.Type) {
-		case FieldText, FieldString, FieldRichtext:
-			return n
-		}
-	}
-	return ""
-}
 
 // mobileImageExpr returns a JS expression (relative to `item`) that resolves
 // to an image URL for the resource, or "" when the resource has no image.
@@ -241,7 +224,11 @@ func (g *Generator) mobileDetailRows() string {
 			label = humanizeLabel(f.Name)
 			valueExpr = "item." + n
 		}
-		b.WriteString("            <Row label=\"" + label + "\" value={" + valueExpr + "} />\n")
+b.WriteString("            <Row label=\"")
+		b.WriteString(label)
+		b.WriteString("\" value={")
+		b.WriteString(valueExpr)
+		b.WriteString("} />\n")
 	}
 	return strings.TrimRight(b.String(), "\n")
 }
@@ -421,8 +408,12 @@ func (g *Generator) writeMobileListScreen(names Names) error {
 		total += 64
 		header.WriteString("            <View style={{ width: 64 }} className=\"px-3 py-3\" />\n")
 		row.WriteString("      <View style={{ width: 64 }} className=\"px-2 py-2 items-center justify-center\">\n")
-		row.WriteString("        {" + imageExpr + " ? (\n")
-		row.WriteString("          <Image source={{ uri: resolveImageUrl(" + imageExpr + ") }} style={{ width: 44, height: 44, borderRadius: 10 }} contentFit=\"cover\" />\n")
+row.WriteString("        {")
+		row.WriteString(imageExpr)
+		row.WriteString(" ? (\n")
+row.WriteString("          <Image source={{ uri: resolveImageUrl(")
+		row.WriteString(imageExpr)
+		row.WriteString(") }} style={{ width: 44, height: 44, borderRadius: 10 }} contentFit=\"cover\" />\n")
 		row.WriteString("        ) : (\n")
 		row.WriteString("          <View className=\"w-11 h-11 rounded-[10px] bg-[#6c5ce7]/12 items-center justify-center\"><Ionicons name=\"image-outline\" size={18} color=\"#6c5ce7\" /></View>\n")
 		row.WriteString("        )}\n")
@@ -434,13 +425,25 @@ func (g *Generator) writeMobileListScreen(names Names) error {
 		w := strconv.Itoa(c.width)
 		// header cell
 		if c.sortKey != "" {
-			header.WriteString("            <Pressable onPress={() => onSort(\"" + c.sortKey + "\")} style={{ width: " + w + " }} className=\"px-3 py-3 flex-row items-center\">\n")
-			header.WriteString("              <Text className=\"text-[12px] font-semibold text-[#6B7280] dark:text-[#9090a8]\" numberOfLines={1}>" + c.label + "</Text>\n")
-			header.WriteString("              {sortBy === \"" + c.sortKey + "\" ? <Ionicons name={sortOrder === \"asc\" ? \"arrow-up\" : \"arrow-down\"} size={12} color=\"#6c5ce7\" style={{ marginLeft: 4 }} /> : null}\n")
+header.WriteString("            <Pressable onPress={() => onSort(\"")
+			header.WriteString(c.sortKey)
+			header.WriteString("\")} style={{ width: ")
+			header.WriteString(w)
+			header.WriteString(" }} className=\"px-3 py-3 flex-row items-center\">\n")
+header.WriteString("              <Text className=\"text-[12px] font-semibold text-[#6B7280] dark:text-[#9090a8]\" numberOfLines={1}>")
+			header.WriteString(c.label)
+			header.WriteString("</Text>\n")
+header.WriteString("              {sortBy === \"")
+			header.WriteString(c.sortKey)
+			header.WriteString("\" ? <Ionicons name={sortOrder === \"asc\" ? \"arrow-up\" : \"arrow-down\"} size={12} color=\"#6c5ce7\" style={{ marginLeft: 4 }} /> : null}\n")
 			header.WriteString("            </Pressable>\n")
 		} else {
-			header.WriteString("            <View style={{ width: " + w + " }} className=\"px-3 py-3\">\n")
-			header.WriteString("              <Text className=\"text-[12px] font-semibold text-[#6B7280] dark:text-[#9090a8]\" numberOfLines={1}>" + c.label + "</Text>\n")
+header.WriteString("            <View style={{ width: ")
+			header.WriteString(w)
+			header.WriteString(" }} className=\"px-3 py-3\">\n")
+header.WriteString("              <Text className=\"text-[12px] font-semibold text-[#6B7280] dark:text-[#9090a8]\" numberOfLines={1}>")
+			header.WriteString(c.label)
+			header.WriteString("</Text>\n")
 			header.WriteString("            </View>\n")
 		}
 		// row cell
@@ -448,8 +451,14 @@ func (g *Generator) writeMobileListScreen(names Names) error {
 		if c.bold {
 			textClass = "text-[14px] font-semibold text-[#0F1018] dark:text-white"
 		}
-		row.WriteString("      <View style={{ width: " + w + " }} className=\"px-3 py-3\">\n")
-		row.WriteString("        <Text numberOfLines={1} className=\"" + textClass + "\">{" + c.cellExpr + "}</Text>\n")
+row.WriteString("      <View style={{ width: ")
+		row.WriteString(w)
+		row.WriteString(" }} className=\"px-3 py-3\">\n")
+row.WriteString("        <Text numberOfLines={1} className=\"")
+		row.WriteString(textClass)
+		row.WriteString("\">{")
+		row.WriteString(c.cellExpr)
+		row.WriteString("}</Text>\n")
 		row.WriteString("      </View>\n")
 	}
 
@@ -467,25 +476,61 @@ func (g *Generator) writeMobileListScreen(names Names) error {
 		hook := "use" + relNames.PluralPascal
 		imp := "@/hooks/use-" + relNames.PluralKebab
 		if !seenFImport[imp] {
-			filterImports.WriteString("import { " + hook + " } from \"" + imp + "\";\n")
+filterImports.WriteString("import { ")
+			filterImports.WriteString(hook)
+			filterImports.WriteString(" } from \"")
+			filterImports.WriteString(imp)
+			filterImports.WriteString("\";\n")
 			seenFImport[imp] = true
 		}
 		fk := f.FKColumnName()
 		optsVar := "f" + toPascalCase(fk) + "Opts"
 		qVar := "f" + toPascalCase(fk) + "Query"
 		// Large first page so the filter pills aren't capped at the list default (20).
-		filterQueries.WriteString("  const " + qVar + " = " + hook + "(\"\", {}, \"created_at\", \"desc\", 500);\n")
-		filterQueries.WriteString("  const " + optsVar + " = " + qVar + ".data?.pages.flatMap((p: any) => p.data) ?? [];\n")
+filterQueries.WriteString("  const ")
+		filterQueries.WriteString(qVar)
+		filterQueries.WriteString(" = ")
+		filterQueries.WriteString(hook)
+		filterQueries.WriteString("(\"\", {}, \"created_at\", \"desc\", 500);\n")
+filterQueries.WriteString("  const ")
+		filterQueries.WriteString(optsVar)
+		filterQueries.WriteString(" = ")
+		filterQueries.WriteString(qVar)
+		filterQueries.WriteString(".data?.pages.flatMap((p: any) => p.data) ?? [];\n")
 		unsel := "\"px-4 py-2 mr-2 rounded-full bg-white dark:bg-[#111118] border border-[#E5E7EB] dark:border-[#2a2a3a]\""
 		sel := "\"px-4 py-2 mr-2 rounded-full bg-[#6c5ce7]\""
-		filterJSX.WriteString("        <Text className=\"text-[13px] font-semibold text-[#6B7280] dark:text-[#9090a8] mb-2\">" + f.RelatedModelName() + "</Text>\n")
+filterJSX.WriteString("        <Text className=\"text-[13px] font-semibold text-[#6B7280] dark:text-[#9090a8] mb-2\">")
+		filterJSX.WriteString(f.RelatedModelName())
+		filterJSX.WriteString("</Text>\n")
 		filterJSX.WriteString("        <ScrollView horizontal showsHorizontalScrollIndicator={false} className=\"mb-4\">\n")
-		filterJSX.WriteString("          <Pressable onPress={() => setFilters((f) => { const n = { ...f }; delete n." + fk + "; return n; })} className={!filters." + fk + " ? " + sel + " : " + unsel + "}>\n")
-		filterJSX.WriteString("            <Text className={!filters." + fk + " ? \"text-white font-medium\" : \"text-[#0F1018] dark:text-white\"}>All</Text>\n")
+filterJSX.WriteString("          <Pressable onPress={() => setFilters((f) => { const n = { ...f }; delete n.")
+		filterJSX.WriteString(fk)
+		filterJSX.WriteString("; return n; })} className={!filters.")
+		filterJSX.WriteString(fk)
+		filterJSX.WriteString(" ? ")
+		filterJSX.WriteString(sel)
+		filterJSX.WriteString(" : ")
+		filterJSX.WriteString(unsel)
+		filterJSX.WriteString("}>\n")
+filterJSX.WriteString("            <Text className={!filters.")
+		filterJSX.WriteString(fk)
+		filterJSX.WriteString(" ? \"text-white font-medium\" : \"text-[#0F1018] dark:text-white\"}>All</Text>\n")
 		filterJSX.WriteString("          </Pressable>\n")
-		filterJSX.WriteString("          {" + optsVar + ".map((opt: any) => (\n")
-		filterJSX.WriteString("            <Pressable key={opt.id} onPress={() => setFilters((f) => ({ ...f, " + fk + ": opt.id }))} className={filters." + fk + " === opt.id ? " + sel + " : " + unsel + "}>\n")
-		filterJSX.WriteString("              <Text className={filters." + fk + " === opt.id ? \"text-white font-medium\" : \"text-[#0F1018] dark:text-white\"}>{opt.name || opt.title || opt.id}</Text>\n")
+filterJSX.WriteString("          {")
+		filterJSX.WriteString(optsVar)
+		filterJSX.WriteString(".map((opt: any) => (\n")
+filterJSX.WriteString("            <Pressable key={opt.id} onPress={() => setFilters((f) => ({ ...f, ")
+		filterJSX.WriteString(fk)
+		filterJSX.WriteString(": opt.id }))} className={filters.")
+		filterJSX.WriteString(fk)
+		filterJSX.WriteString(" === opt.id ? ")
+		filterJSX.WriteString(sel)
+		filterJSX.WriteString(" : ")
+		filterJSX.WriteString(unsel)
+		filterJSX.WriteString("}>\n")
+filterJSX.WriteString("              <Text className={filters.")
+		filterJSX.WriteString(fk)
+		filterJSX.WriteString(" === opt.id ? \"text-white font-medium\" : \"text-[#0F1018] dark:text-white\"}>{opt.name || opt.title || opt.id}</Text>\n")
 		filterJSX.WriteString("            </Pressable>\n")
 		filterJSX.WriteString("          ))}\n")
 		filterJSX.WriteString("        </ScrollView>\n")
@@ -806,7 +851,11 @@ func (g *Generator) writeMobileFormComponent(names Names) error {
 			hook := "use" + relNames.PluralPascal
 			imp := "@/hooks/use-" + relNames.PluralKebab
 			if !seenImport[imp] {
-				extraImports.WriteString("import { " + hook + " } from \"" + imp + "\";\n")
+extraImports.WriteString("import { ")
+				extraImports.WriteString(hook)
+				extraImports.WriteString(" } from \"")
+				extraImports.WriteString(imp)
+				extraImports.WriteString("\";\n")
 				seenImport[imp] = true
 			}
 			if !seenImport["relation-select"] {
@@ -818,15 +867,45 @@ func (g *Generator) writeMobileFormComponent(names Names) error {
 			fkSetter := "set" + toPascalCase(fk)
 			optsVar := lowerCamel(relNames.Plural) + "Opts"
 			queryVar := lowerCamel(relNames.Plural) + "Query"
-			stateLines.WriteString("  const [" + fkCamel + ", " + fkSetter + "] = useState(i." + fk + " ?? \"\");\n")
+stateLines.WriteString("  const [")
+			stateLines.WriteString(fkCamel)
+			stateLines.WriteString(", ")
+			stateLines.WriteString(fkSetter)
+			stateLines.WriteString("] = useState(i.")
+			stateLines.WriteString(fk)
+			stateLines.WriteString(" ?? \"\");\n")
 			// Load a large first page so the picker isn't silently capped at the
 			// list default (20). Covers the overwhelming majority of belongs_to
 			// relations without a paginated in-modal search.
-			optionLines.WriteString("  const " + queryVar + " = " + hook + "(\"\", {}, \"created_at\", \"desc\", 500);\n")
-			optionLines.WriteString("  const " + optsVar + " = " + queryVar + ".data?.pages.flatMap((p: any) => p.data) ?? [];\n")
-			validations.WriteString("    if (!" + fkCamel + ") return setError(\"" + label + " is required\");\n")
-			payload.WriteString("        " + fk + ": " + fkCamel + ",\n")
-			fieldsJSX.WriteString("      <RelationSelect label=\"" + label + "\" value={" + fkCamel + "} onChange={" + fkSetter + "} options={" + optsVar + "} />\n")
+optionLines.WriteString("  const ")
+			optionLines.WriteString(queryVar)
+			optionLines.WriteString(" = ")
+			optionLines.WriteString(hook)
+			optionLines.WriteString("(\"\", {}, \"created_at\", \"desc\", 500);\n")
+optionLines.WriteString("  const ")
+			optionLines.WriteString(optsVar)
+			optionLines.WriteString(" = ")
+			optionLines.WriteString(queryVar)
+			optionLines.WriteString(".data?.pages.flatMap((p: any) => p.data) ?? [];\n")
+validations.WriteString("    if (!")
+			validations.WriteString(fkCamel)
+			validations.WriteString(") return setError(\"")
+			validations.WriteString(label)
+			validations.WriteString(" is required\");\n")
+payload.WriteString("        ")
+			payload.WriteString(fk)
+			payload.WriteString(": ")
+			payload.WriteString(fkCamel)
+			payload.WriteString(",\n")
+fieldsJSX.WriteString("      <RelationSelect label=\"")
+			fieldsJSX.WriteString(label)
+			fieldsJSX.WriteString("\" value={")
+			fieldsJSX.WriteString(fkCamel)
+			fieldsJSX.WriteString("} onChange={")
+			fieldsJSX.WriteString(fkSetter)
+			fieldsJSX.WriteString("} options={")
+			fieldsJSX.WriteString(optsVar)
+			fieldsJSX.WriteString("} />\n")
 
 		case f.IsFiles():
 			// Multiple images: multi-select from the gallery, a grid of removable
@@ -836,20 +915,48 @@ func (g *Generator) writeMobileFormComponent(names Names) error {
 			urlsSetter := "set" + pascal + "Urls"
 			prevsVar := camel + "Previews"
 			prevsSetter := "set" + pascal + "Previews"
-			stateLines.WriteString("  const [" + urlsVar + ", " + urlsSetter + "] = useState<string[]>((i." + n + " ?? []).map((x: any) => x?.url).filter(Boolean));\n")
-			stateLines.WriteString("  const [" + prevsVar + ", " + prevsSetter + "] = useState<string[]>((i." + n + " ?? []).map((x: any) => resolveImageUrl(x?.url)).filter(Boolean));\n")
-			payload.WriteString("        " + n + ": " + urlsVar + ".map((u) => ({ url: u })),\n")
-			fieldsJSX.WriteString("      <Text className={labelClass}>" + label + "</Text>\n")
+stateLines.WriteString("  const [")
+			stateLines.WriteString(urlsVar)
+			stateLines.WriteString(", ")
+			stateLines.WriteString(urlsSetter)
+			stateLines.WriteString("] = useState<string[]>((i.")
+			stateLines.WriteString(n)
+			stateLines.WriteString(" ?? []).map((x: any) => x?.url).filter(Boolean));\n")
+stateLines.WriteString("  const [")
+			stateLines.WriteString(prevsVar)
+			stateLines.WriteString(", ")
+			stateLines.WriteString(prevsSetter)
+			stateLines.WriteString("] = useState<string[]>((i.")
+			stateLines.WriteString(n)
+			stateLines.WriteString(" ?? []).map((x: any) => resolveImageUrl(x?.url)).filter(Boolean));\n")
+payload.WriteString("        ")
+			payload.WriteString(n)
+			payload.WriteString(": ")
+			payload.WriteString(urlsVar)
+			payload.WriteString(".map((u) => ({ url: u })),\n")
+fieldsJSX.WriteString("      <Text className={labelClass}>")
+			fieldsJSX.WriteString(label)
+			fieldsJSX.WriteString("</Text>\n")
 			fieldsJSX.WriteString("      <View className=\"flex-row flex-wrap mb-4\">\n")
-			fieldsJSX.WriteString("        {" + prevsVar + ".map((uri, idx) => (\n")
+fieldsJSX.WriteString("        {")
+			fieldsJSX.WriteString(prevsVar)
+			fieldsJSX.WriteString(".map((uri, idx) => (\n")
 			fieldsJSX.WriteString("          <View key={idx} className=\"mr-2 mb-2\">\n")
 			fieldsJSX.WriteString("            <Image source={{ uri }} style={{ width: 88, height: 88, borderRadius: 14 }} contentFit=\"cover\" />\n")
-			fieldsJSX.WriteString("            <Pressable onPress={() => { " + prevsSetter + "((p) => p.filter((_, i) => i !== idx)); " + urlsSetter + "((p) => p.filter((_, i) => i !== idx)); }} className=\"absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-black/70 items-center justify-center\">\n")
+fieldsJSX.WriteString("            <Pressable onPress={() => { ")
+			fieldsJSX.WriteString(prevsSetter)
+			fieldsJSX.WriteString("((p) => p.filter((_, i) => i !== idx)); ")
+			fieldsJSX.WriteString(urlsSetter)
+			fieldsJSX.WriteString("((p) => p.filter((_, i) => i !== idx)); }} className=\"absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-black/70 items-center justify-center\">\n")
 			fieldsJSX.WriteString("              <Ionicons name=\"close\" size={14} color=\"#fff\" />\n")
 			fieldsJSX.WriteString("            </Pressable>\n")
 			fieldsJSX.WriteString("          </View>\n")
 			fieldsJSX.WriteString("        ))}\n")
-			fieldsJSX.WriteString("        <Pressable onPress={() => openPicker(true, (u) => " + prevsSetter + "((p) => [...p, ...u]), (urls) => " + urlsSetter + "((p) => [...p, ...urls]))} className=\"w-[88px] h-[88px] rounded-2xl border border-dashed border-[#E5E7EB] dark:border-[#2a2a3a] items-center justify-center bg-white dark:bg-[#111118]\">\n")
+fieldsJSX.WriteString("        <Pressable onPress={() => openPicker(true, (u) => ")
+			fieldsJSX.WriteString(prevsSetter)
+			fieldsJSX.WriteString("((p) => [...p, ...u]), (urls) => ")
+			fieldsJSX.WriteString(urlsSetter)
+			fieldsJSX.WriteString("((p) => [...p, ...urls]))} className=\"w-[88px] h-[88px] rounded-2xl border border-dashed border-[#E5E7EB] dark:border-[#2a2a3a] items-center justify-center bg-white dark:bg-[#111118]\">\n")
 			fieldsJSX.WriteString("          {uploading ? <ActivityIndicator color=\"#6c5ce7\" /> : <Ionicons name=\"add\" size={26} color=\"#9CA3AF\" />}\n")
 			fieldsJSX.WriteString("        </Pressable>\n")
 			fieldsJSX.WriteString("      </View>\n")
@@ -860,22 +967,52 @@ func (g *Generator) writeMobileFormComponent(names Names) error {
 			urlSetter := "set" + pascal + "Url"
 			previewVar := camel + "Preview"
 			previewSetter := "set" + pascal + "Preview"
-			stateLines.WriteString("  const [" + urlVar + ", " + urlSetter + "] = useState<string | null>(i." + n + "?.url ?? null);\n")
+stateLines.WriteString("  const [")
+			stateLines.WriteString(urlVar)
+			stateLines.WriteString(", ")
+			stateLines.WriteString(urlSetter)
+			stateLines.WriteString("] = useState<string | null>(i.")
+			stateLines.WriteString(n)
+			stateLines.WriteString("?.url ?? null);\n")
 			// previewVar shows the just-picked LOCAL image instantly; urlVar holds
 			// the uploaded URL for the payload (and the stored image in edit mode).
-			stateLines.WriteString("  const [" + previewVar + ", " + previewSetter + "] = useState<string | null>(null);\n")
-			payload.WriteString("        " + n + ": " + urlVar + " ? { url: " + urlVar + " } : undefined,\n")
-			fieldsJSX.WriteString("      <Text className={labelClass}>" + label + "</Text>\n")
-			fieldsJSX.WriteString("      <Pressable onPress={() => openPicker(false, (u) => " + previewSetter + "(u[0]), (urls) => " + urlSetter + "(urls[0]))} className=\"mb-4 h-40 rounded-2xl border border-dashed border-[#E5E7EB] dark:border-[#2a2a3a] items-center justify-center overflow-hidden bg-white dark:bg-[#111118]\">\n")
-			fieldsJSX.WriteString("        {" + previewVar + " ? (\n")
+stateLines.WriteString("  const [")
+			stateLines.WriteString(previewVar)
+			stateLines.WriteString(", ")
+			stateLines.WriteString(previewSetter)
+			stateLines.WriteString("] = useState<string | null>(null);\n")
+payload.WriteString("        ")
+			payload.WriteString(n)
+			payload.WriteString(": ")
+			payload.WriteString(urlVar)
+			payload.WriteString(" ? { url: ")
+			payload.WriteString(urlVar)
+			payload.WriteString(" } : undefined,\n")
+fieldsJSX.WriteString("      <Text className={labelClass}>")
+			fieldsJSX.WriteString(label)
+			fieldsJSX.WriteString("</Text>\n")
+fieldsJSX.WriteString("      <Pressable onPress={() => openPicker(false, (u) => ")
+			fieldsJSX.WriteString(previewSetter)
+			fieldsJSX.WriteString("(u[0]), (urls) => ")
+			fieldsJSX.WriteString(urlSetter)
+			fieldsJSX.WriteString("(urls[0]))} className=\"mb-4 h-40 rounded-2xl border border-dashed border-[#E5E7EB] dark:border-[#2a2a3a] items-center justify-center overflow-hidden bg-white dark:bg-[#111118]\">\n")
+fieldsJSX.WriteString("        {")
+			fieldsJSX.WriteString(previewVar)
+			fieldsJSX.WriteString(" ? (\n")
 			fieldsJSX.WriteString("          <>\n")
-			fieldsJSX.WriteString("            <Image source={{ uri: " + previewVar + " }} style={{ width: \"100%\", height: \"100%\" }} contentFit=\"cover\" />\n")
+fieldsJSX.WriteString("            <Image source={{ uri: ")
+			fieldsJSX.WriteString(previewVar)
+			fieldsJSX.WriteString(" }} style={{ width: \"100%\", height: \"100%\" }} contentFit=\"cover\" />\n")
 			fieldsJSX.WriteString("            {uploading ? (\n")
 			fieldsJSX.WriteString("              <View className=\"absolute inset-0 items-center justify-center bg-black/30\"><ActivityIndicator color=\"#fff\" /></View>\n")
 			fieldsJSX.WriteString("            ) : null}\n")
 			fieldsJSX.WriteString("          </>\n")
-			fieldsJSX.WriteString("        ) : " + urlVar + " ? (\n")
-			fieldsJSX.WriteString("          <Image source={{ uri: resolveImageUrl(" + urlVar + ") }} style={{ width: \"100%\", height: \"100%\" }} contentFit=\"cover\" />\n")
+fieldsJSX.WriteString("        ) : ")
+			fieldsJSX.WriteString(urlVar)
+			fieldsJSX.WriteString(" ? (\n")
+fieldsJSX.WriteString("          <Image source={{ uri: resolveImageUrl(")
+			fieldsJSX.WriteString(urlVar)
+			fieldsJSX.WriteString(") }} style={{ width: \"100%\", height: \"100%\" }} contentFit=\"cover\" />\n")
 			fieldsJSX.WriteString("        ) : (\n")
 			fieldsJSX.WriteString("          <View className=\"items-center\">\n")
 			fieldsJSX.WriteString("            <Ionicons name=\"image-outline\" size={28} color=\"#9CA3AF\" />\n")
@@ -885,38 +1022,108 @@ func (g *Generator) writeMobileFormComponent(names Names) error {
 			fieldsJSX.WriteString("      </Pressable>\n")
 
 		case t == FieldBool:
-			stateLines.WriteString("  const [" + camel + ", set" + pascal + "] = useState(i." + n + " ?? false);\n")
-			payload.WriteString("        " + n + ": " + camel + ",\n")
+stateLines.WriteString("  const [")
+			stateLines.WriteString(camel)
+			stateLines.WriteString(", set")
+			stateLines.WriteString(pascal)
+			stateLines.WriteString("] = useState(i.")
+			stateLines.WriteString(n)
+			stateLines.WriteString(" ?? false);\n")
+payload.WriteString("        ")
+			payload.WriteString(n)
+			payload.WriteString(": ")
+			payload.WriteString(camel)
+			payload.WriteString(",\n")
 			fieldsJSX.WriteString("      <View className=\"flex-row items-center justify-between mb-4\">\n")
-			fieldsJSX.WriteString("        <Text className={labelClass} style={{ marginBottom: 0 }}>" + label + "</Text>\n")
-			fieldsJSX.WriteString("        <Switch value={" + camel + "} onValueChange={set" + pascal + "} trackColor={{ false: \"#D1D5DB\", true: \"#6c5ce7\" }} thumbColor=\"#ffffff\" />\n")
+fieldsJSX.WriteString("        <Text className={labelClass} style={{ marginBottom: 0 }}>")
+			fieldsJSX.WriteString(label)
+			fieldsJSX.WriteString("</Text>\n")
+fieldsJSX.WriteString("        <Switch value={")
+			fieldsJSX.WriteString(camel)
+			fieldsJSX.WriteString("} onValueChange={set")
+			fieldsJSX.WriteString(pascal)
+			fieldsJSX.WriteString("} trackColor={{ false: \"#D1D5DB\", true: \"#6c5ce7\" }} thumbColor=\"#ffffff\" />\n")
 			fieldsJSX.WriteString("      </View>\n")
 
 		case t == FieldInt || t == FieldUint:
 			hasNumber = true
-			stateLines.WriteString("  const [" + camel + ", set" + pascal + "] = useState(i." + n + " != null ? formatNumberInput(String(i." + n + ")) : \"\");\n")
-			payload.WriteString("        " + n + ": parseNumberInput(" + camel + "),\n")
+stateLines.WriteString("  const [")
+			stateLines.WriteString(camel)
+			stateLines.WriteString(", set")
+			stateLines.WriteString(pascal)
+			stateLines.WriteString("] = useState(i.")
+			stateLines.WriteString(n)
+			stateLines.WriteString(" != null ? formatNumberInput(String(i.")
+			stateLines.WriteString(n)
+			stateLines.WriteString(")) : \"\");\n")
+payload.WriteString("        ")
+			payload.WriteString(n)
+			payload.WriteString(": parseNumberInput(")
+			payload.WriteString(camel)
+			payload.WriteString("),\n")
 			fieldsJSX.WriteString(mobileNumberInput(label, camel, "set"+pascal, false))
 
 		case t == FieldFloat:
 			hasNumber = true
-			stateLines.WriteString("  const [" + camel + ", set" + pascal + "] = useState(i." + n + " != null ? formatNumberInput(String(i." + n + "), true) : \"\");\n")
-			payload.WriteString("        " + n + ": parseNumberInput(" + camel + "),\n")
+stateLines.WriteString("  const [")
+			stateLines.WriteString(camel)
+			stateLines.WriteString(", set")
+			stateLines.WriteString(pascal)
+			stateLines.WriteString("] = useState(i.")
+			stateLines.WriteString(n)
+			stateLines.WriteString(" != null ? formatNumberInput(String(i.")
+			stateLines.WriteString(n)
+			stateLines.WriteString("), true) : \"\");\n")
+payload.WriteString("        ")
+			payload.WriteString(n)
+			payload.WriteString(": parseNumberInput(")
+			payload.WriteString(camel)
+			payload.WriteString("),\n")
 			fieldsJSX.WriteString(mobileNumberInput(label, camel, "set"+pascal, true))
 
 		case t == FieldText || t == FieldRichtext:
-			stateLines.WriteString("  const [" + camel + ", set" + pascal + "] = useState(i." + n + " ?? \"\");\n")
-			payload.WriteString("        " + n + ": " + camel + ",\n")
+stateLines.WriteString("  const [")
+			stateLines.WriteString(camel)
+			stateLines.WriteString(", set")
+			stateLines.WriteString(pascal)
+			stateLines.WriteString("] = useState(i.")
+			stateLines.WriteString(n)
+			stateLines.WriteString(" ?? \"\");\n")
+payload.WriteString("        ")
+			payload.WriteString(n)
+			payload.WriteString(": ")
+			payload.WriteString(camel)
+			payload.WriteString(",\n")
 			fieldsJSX.WriteString(mobileTextInput(label, camel, "set"+pascal, "default", true))
 
 		case t == FieldDatetime || t == FieldDate:
-			stateLines.WriteString("  const [" + camel + ", set" + pascal + "] = useState(i." + n + " ?? \"\");\n")
-			payload.WriteString("        " + n + ": " + camel + " || undefined,\n")
+stateLines.WriteString("  const [")
+			stateLines.WriteString(camel)
+			stateLines.WriteString(", set")
+			stateLines.WriteString(pascal)
+			stateLines.WriteString("] = useState(i.")
+			stateLines.WriteString(n)
+			stateLines.WriteString(" ?? \"\");\n")
+payload.WriteString("        ")
+			payload.WriteString(n)
+			payload.WriteString(": ")
+			payload.WriteString(camel)
+			payload.WriteString(" || undefined,\n")
 			fieldsJSX.WriteString(mobileTextInput(label, camel, "set"+pascal, "default", false))
 
 		default: // string
-			stateLines.WriteString("  const [" + camel + ", set" + pascal + "] = useState(i." + n + " ?? \"\");\n")
-			payload.WriteString("        " + n + ": " + camel + ",\n")
+stateLines.WriteString("  const [")
+			stateLines.WriteString(camel)
+			stateLines.WriteString(", set")
+			stateLines.WriteString(pascal)
+			stateLines.WriteString("] = useState(i.")
+			stateLines.WriteString(n)
+			stateLines.WriteString(" ?? \"\");\n")
+payload.WriteString("        ")
+			payload.WriteString(n)
+			payload.WriteString(": ")
+			payload.WriteString(camel)
+			payload.WriteString(",\n")
 			fieldsJSX.WriteString(mobileTextInput(label, camel, "set"+pascal, "default", false))
 		}
 	}

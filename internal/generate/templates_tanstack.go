@@ -91,7 +91,7 @@ export function useDelete%s() {
 }
 
 // buildTSFields generates TypeScript interface fields from the resource definition.
-func (g *Generator) buildTSFields(names Names) string {
+func (g *Generator) buildTSFields(_ Names) string {
 	var b strings.Builder
 	for _, f := range g.Definition.Fields {
 		jsonName := toSnakeCase(f.Name)

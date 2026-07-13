@@ -728,7 +728,7 @@ func (g *DesktopGenerator) writeDesktopEditRoute(names Names) error {
 }
 
 // buildFormHelpers extracts shared state declarations, input fields, and form fields for new/edit routes.
-func (g *DesktopGenerator) buildFormHelpers(names Names) (stateDecls, inputFields, formFields, extraImports, effects string) {
+func (g *DesktopGenerator) buildFormHelpers(_ Names) (stateDecls, inputFields, formFields, extraImports, effects string) {
 	// belongs_to fields need the related list binding imported and loaded into a
 	// dropdown. Collect the bindings so the route can import them (deduped).
 	seenBinding := map[string]bool{}

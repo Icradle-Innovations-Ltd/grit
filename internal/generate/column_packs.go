@@ -61,6 +61,30 @@ func detectColumnPacks(fields []Field) (map[string]columnPack, bool) {
 		out["last_name"] = pack
 	}
 
+	for _, f := range fields {
+		if f.Type == "float" {
+			name := toSnakeCase(f.Name)
+			if strings.HasSuffix(name, "price") || strings.HasSuffix(name, "amount") || strings.HasSuffix(name, "cost") || strings.HasSuffix(name, "total") || strings.HasSuffix(name, "balance") || strings.HasSuffix(name, "fee") {
+				currencyField := ""
+				if have[name+"_currency"] {
+					currencyField = name + "_currency"
+				} else if have["currency"] {
+					currencyField = "currency"
+				}
+
+				if currencyField != "" && out[name].primary == "" && out[currencyField].primary == "" {
+					label := humanLabel(f.Name)
+					pack := columnPack{
+						primary: name,
+						line:    fmt.Sprintf(`{ key: "%s", label: "%s", sortable: true, searchable: true, cell: (row) => StackedCell({ top: new Intl.NumberFormat('en-US', { style: 'currency', currency: String(row.%s || 'USD') }).format(Number(row.%s || 0)), bottom: String(row.%s || "") }) },`, name, label, currencyField, name, currencyField),
+					}
+					out[name] = pack
+					out[currencyField] = pack
+				}
+			}
+		}
+	}
+
 	return out, len(out) > 0
 }
 

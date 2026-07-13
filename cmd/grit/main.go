@@ -61,6 +61,7 @@ func main() {
 	rootCmd.AddCommand(downCmd())
 	rootCmd.AddCommand(upCmd())
 	rootCmd.AddCommand(deployCmd())
+	rootCmd.AddCommand(packCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -76,6 +77,32 @@ func versionCmd() *cobra.Command {
 			fmt.Printf("grit version %s\n", version)
 		},
 	}
+}
+
+func packCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pack",
+		Short: "Apply packing heuristics to existing generated files",
+	}
+
+	table := &cobra.Command{
+		Use:   "table <Resource>",
+		Short: "Pack columns in the admin resource table (e.g., name+email -> Contact)",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			printLogo()
+			resource := args[0]
+			cwd, _ := os.Getwd()
+			err := generate.PackAdminResourceTable(cwd, resource)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+
+	cmd.AddCommand(table)
+	return cmd
 }
 
 func initCmd() *cobra.Command {
@@ -1430,7 +1457,7 @@ type devProc struct {
 // runDevProcs starts every process, streams their prefixed output onto one
 // terminal, forwards Ctrl+C / SIGTERM to all of them, and when any one exits
 // (or the user interrupts) shuts the rest down so they leave together.
-func runDevProcs(ctx context.Context, cancel context.CancelFunc, procs []devProc) error {
+func runDevProcs(_ context.Context, cancel context.CancelFunc, procs []devProc) error {
 	var outWg sync.WaitGroup
 	started := make([]*exec.Cmd, 0, len(procs))
 
@@ -1498,6 +1525,9 @@ func prefixCopy(wg *sync.WaitGroup, prefix string, r io.Reader, w io.Writer) {
 	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 	for scanner.Scan() {
 		fmt.Fprintln(w, prefix+scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(w, prefix+"[stderr stream error: "+err.Error()+"]")
 	}
 }
 

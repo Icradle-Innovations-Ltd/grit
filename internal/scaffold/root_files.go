@@ -608,11 +608,11 @@ func rootPackageJSON(opts Options) string {
 	// VC++ runtime is missing), which would otherwise block `grit start` on a
 	// fresh machine. pnpm needs no native binary, so `dev` always works; turbo
 	// is kept for build/lint/test where its caching pays off.
-	scripts := fmt.Sprintf(`    "dev": "pnpm --parallel --filter \"./apps/*\" --if-present run dev",
+	scripts := `    "dev": "pnpm --parallel --filter \"./apps/*\" --if-present run dev",
     "build": "turbo build",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
-    "dev:api": "cd apps/api && air",`)
+    "dev:api": "cd apps/api && air",`
 
 	if opts.ShouldIncludeWeb() {
 		scripts += `

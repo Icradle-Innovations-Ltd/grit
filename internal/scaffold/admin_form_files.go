@@ -352,9 +352,9 @@ export function buildDefaults(
 // adminFormModal returns the centered-dialog form modal.
 //
 // v3.31.17: this used to render as a right-side sheet — that behavior
-// lives on under the new <FormSheet> component (formView: "sheet").
+// lives on under the new <FormSheet> component (form.render: "sheet").
 // FormModal is now what its name implies: a centered Dialog. Pick
-// formView: "sheet" (the default) for the long-form-friendly drawer,
+// form.render: "sheet" (the default) for the long-form-friendly drawer,
 // "modal" for a focused short-form-friendly dialog, or "page" for a
 // dedicated route.
 func adminFormModal() string {
@@ -389,7 +389,7 @@ export function FormModal({ resource, item, onClose }: FormModalProps) {
 
   return (
     // Centered dialog — best for short forms (1-6 fields). Long forms
-    // are better off using formView: "sheet" or "page" instead.
+    // are better off using form.render: "sheet" or "page" instead.
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-bg-secondary shadow-2xl">
@@ -424,8 +424,8 @@ export function FormModal({ resource, item, onClose }: FormModalProps) {
 
 // adminFormSheet returns the right-drawer / bottom-sheet form (the
 // long-form-friendly variant that was the prior default behavior of
-// FormModal). New code reaches this via formView: "sheet" or by leaving
-// formView undefined.
+// FormModal). New code reaches this via form.render: "sheet" or by leaving
+// form.render undefined.
 func adminFormSheet() string {
 	return `"use client";
 
@@ -492,7 +492,7 @@ export function FormSheet({ resource, item, onClose }: FormSheetProps) {
 `
 }
 
-// adminFormPage returns the full-page form component for formView: "page" resources.
+// adminFormPage returns the full-page form component for form.render: "page" resources.
 func adminFormPage() string {
 	return `"use client";
 
@@ -612,7 +612,22 @@ interface ComputedStep {
   fields: FieldDefinition[];
 }
 
-function computeSteps(form: FormDefinition): ComputedStep[] {
+function computeSteps(form: FormDefinition, isEdit: boolean): ComputedStep[] {
+  if (form.groups && form.groups.length > 0) {
+    const activeGroups = form.groups.filter(
+      (g) => !g.scope || (isEdit ? g.scope === "update" || g.scope === "both" : g.scope === "create" || g.scope === "both")
+    );
+    if (activeGroups.length > 0) {
+      return activeGroups.map((g) => ({
+        title: g.title,
+        description: g.description,
+        fields: g.fields
+          .map((key) => form.fields.find((f) => f.key === key))
+          .filter(Boolean) as FieldDefinition[],
+      }));
+    }
+  }
+
   if (form.steps && form.steps.length > 0) {
     return form.steps.map((step) => ({
       title: step.title,
@@ -650,8 +665,9 @@ export function FormStepper({
   isSubmitting,
   submitLabel = "Save",
 }: FormStepperProps) {
+  const isEdit = Object.keys(defaultValues).length > 0;
   const [currentStep, setCurrentStep] = useState(0);
-  const steps = computeSteps(formDef);
+  const steps = computeSteps(formDef, isEdit);
   const isVertical = formDef.stepVariant === "vertical";
   const isTwoColumn = formDef.layout === "two-column";
   const isLastStep = currentStep === steps.length - 1;

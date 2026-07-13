@@ -10,8 +10,10 @@ import (
 func BenchmarkPluralize(b *testing.B) {
 	words := []string{"Post", "Category", "Person", "child", "leaf", "status", "box"}
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		Pluralize(words[i%len(words)])
+		i++
 	}
 }
 
@@ -24,15 +26,17 @@ func BenchmarkField_GoType(b *testing.B) {
 		{Type: "string_array"},
 	}
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		fields[i%len(fields)].GoType()
+		i++
 	}
 }
 
 func BenchmarkField_ZodType(b *testing.B) {
 	f := Field{Type: "string", Required: true}
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		f.ZodType()
 	}
 }
@@ -46,8 +50,10 @@ func BenchmarkField_GORMTag(b *testing.B) {
 		{Type: "string_array"},
 	}
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		fields[i%len(fields)].GORMTag()
+		i++
 	}
 }
 
@@ -55,7 +61,7 @@ func BenchmarkField_GORMTag(b *testing.B) {
 
 func BenchmarkParseInlineFields(b *testing.B) {
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, _ = ParseInlineFields("Post", "title:string,content:text,published:bool,price:float,author:belongs_to:User")
 	}
 }
@@ -73,7 +79,7 @@ func Models() []interface{} {
 }
 `
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		path := writeTempFileBench(b, "bench.go", src)
 		_ = injectBefore(path, "// grit:models", "\t\t&Post{},")
 	}
@@ -87,8 +93,10 @@ func BenchmarkGoTypeToTS(b *testing.B) {
 		"*time.Time", "time.Time", "gorm.DeletedAt", "[]uint",
 	}
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		goTypeToTS(types[i%len(types)])
+		i++
 	}
 }
 

@@ -178,6 +178,7 @@ export interface GroupDefinition {
 }
 
 export interface FormDefinition {
+  render?: "sheet" | "modal" | "page";
   fields: FieldDefinition[];
   layout?: "single" | "two-column";
   steps?: StepDefinition[];
@@ -225,17 +226,6 @@ export interface ResourceDefinition {
   endpoint: string;
   icon: string;
   label?: { singular: string; plural: string };
-  // How the Create / Edit form is presented:
-  //   "sheet"        — right-drawer on desktop, bottom-sheet on mobile (default)
-  //   "modal"        — centered dialog, best for short forms (1-6 fields)
-  //   "page"         — a dedicated route at /resources/<slug>?action=create|edit
-  //   "modal-steps"  — sheet/drawer with multi-step wizard
-  //   "page-steps"   — dedicated page with multi-step wizard
-  // Leave undefined to inherit the "sheet" default. (Pre-v3.31.17 the
-  // bare "modal" value also rendered as a sheet — now "modal" is a
-  // proper centered dialog. Switch to "sheet" if you preferred the
-  // old behavior.)
-  formView?: "sheet" | "modal" | "page" | "modal-steps" | "page-steps";
   table: TableDefinition;
   form: FormDefinition;
   dashboard?: DashboardDefinition;
@@ -593,8 +583,8 @@ interface ResourcePageProps {
 // keeps each function's hook list stable.
 export function ResourcePage({ resource }: ResourcePageProps) {
   const searchParams = useSearchParams();
-  const isFormPage = resource.formView === "page" || resource.formView === "page-steps";
-  const isSteps = resource.formView === "modal-steps" || resource.formView === "page-steps";
+  const isFormPage = resource.form?.render === "page";
+  const isSteps = (resource.form?.groups && resource.form.groups.length > 0) || (resource.form?.steps && resource.form.steps.length > 0);
   const formAction = searchParams.get("action");
 
   // v3.31.18: editing + form has groups → render per-group cards with
@@ -620,8 +610,8 @@ function ResourceListView({ resource }: ResourcePageProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const isFormPage = resource.formView === "page" || resource.formView === "page-steps";
-  const isSteps = resource.formView === "modal-steps" || resource.formView === "page-steps";
+  const isFormPage = resource.form?.render === "page";
+  const isSteps = (resource.form?.groups && resource.form.groups.length > 0) || (resource.form?.steps && resource.form.steps.length > 0);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(resource.table.pageSize ?? 20);
@@ -926,7 +916,7 @@ function ResourceListView({ resource }: ResourcePageProps) {
             item={editingItem}
             onClose={handleFormClose}
           />
-        ) : resource.formView === "modal" ? (
+        ) : resource.form?.render === "modal" ? (
           <FormModal
             resource={resource}
             item={editingItem}

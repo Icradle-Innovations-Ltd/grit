@@ -462,16 +462,17 @@ func (g *Generator) writeGoHandler(names Names) error {
 		patchAllowed += fmt.Sprintf("\t\t\"%s\": true,\n", jsonTag)
 
 		// For update, use pointer types to detect "provided" vs "missing"
-		if goType == "bool" {
+		switch goType {
+		case "bool":
 			updateFields += fmt.Sprintf("\t\t%s *%s `json:\"%s\"`\n", goName, goType, jsonTag)
 			updateMap += fmt.Sprintf("	if req.%s != nil {\n\t\tupdates[\"%s\"] = *req.%s\n\t}\n", goName, jsonTag, goName)
-		} else if goType == "string" {
+		case "string":
 			updateFields += fmt.Sprintf("\t\t%s %s `json:\"%s\"`\n", goName, goType, jsonTag)
 			updateMap += fmt.Sprintf("	if req.%s != \"\" {\n\t\tupdates[\"%s\"] = req.%s\n\t}\n", goName, jsonTag, goName)
-		} else if goType == "*time.Time" {
+		case "*time.Time":
 			updateFields += fmt.Sprintf("\t\t%s %s `json:\"%s\"`\n", goName, goType, jsonTag)
 			updateMap += fmt.Sprintf("	if req.%s != nil {\n\t\tupdates[\"%s\"] = req.%s\n\t}\n", goName, jsonTag, goName)
-		} else {
+		default:
 			updateFields += fmt.Sprintf("\t\t%s *%s `json:\"%s\"`\n", goName, goType, jsonTag)
 			updateMap += fmt.Sprintf("	if req.%s != nil {\n\t\tupdates[\"%s\"] = *req.%s\n\t}\n", goName, jsonTag, goName)
 		}
@@ -1380,8 +1381,8 @@ func (g *Generator) writeResourceDefinition(names Names) error {
 
 		columns += "\n      { " + strings.Join(parts, ", ") + " },"
 	}
-	columns += fmt.Sprintf(`
-      { key: "created_at", label: "Created", sortable: true, format: "relative" },`)
+	columns += `
+      { key: "created_at", label: "Created", sortable: true, format: "relative" },`
 
 	// Build form field definitions (skip slug — auto-generated, not editable)
 	formFields := ""

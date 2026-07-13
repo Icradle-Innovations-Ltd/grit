@@ -179,7 +179,11 @@ func humanLabel(name string) string {
 // guessFormat reads the field's Go type + name to suggest a column
 // format. Conservative — defaults to "text" when nothing matches.
 func guessFormat(f GoField) string {
-	name := strings.ToLower(f.Name)
+	name := f.JSONName
+	if name == "" {
+		name = toSnakeCase(f.Name)
+	}
+	name = strings.ToLower(name)
 
 	if f.GoType == "bool" {
 		return "boolean"
@@ -211,7 +215,11 @@ func guessFormat(f GoField) string {
 
 // guessFormFieldType picks an admin form input type from the Go type.
 func guessFormFieldType(f GoField) string {
-	name := strings.ToLower(f.Name)
+	name := f.JSONName
+	if name == "" {
+		name = toSnakeCase(f.Name)
+	}
+	name = strings.ToLower(name)
 	switch {
 	case f.GoType == "bool":
 		return "toggle"

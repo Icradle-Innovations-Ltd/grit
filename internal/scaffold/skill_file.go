@@ -622,9 +622,10 @@ export const postsResource = defineResource({
 | %[1]srelationship-select%[1]s | Searchable dropdown | belongs_to |
 | %[1]smulti-relationship-select%[1]s | Multi-select tags | many_to_many |
 
-### Form View Variants
+### Form Render Modes
 
-%[1]sformView%[1]s: %[1]smodal%[1]s (default), %[1]spage%[1]s, %[1]smodal-steps%[1]s, %[1]spage-steps%[1]s
+%[1]sform.render%[1]s: %[1]ssheet%[1]s (default), %[1]smodal%[1]s, %[1]spage%[1]s
+(Note: Wizard steps are automatically derived from the presence of %[1]sform.groups%[1]s or %[1]sform.steps%[1]s)
 
 ---
 `, bt)

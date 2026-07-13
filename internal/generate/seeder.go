@@ -66,9 +66,13 @@ func (g *Generator) seederContent(names Names, opts SeederOptions) string {
 	if opts.Faker {
 		imports.WriteString("\t\"github.com/brianvoe/gofakeit/v7\"\n")
 	}
-	imports.WriteString("\t\"" + g.Module + "/internal/models\"\n")
+imports.WriteString("\t\"")
+	imports.WriteString(g.Module)
+	imports.WriteString("/internal/models\"\n")
 	if needsFiles {
-		imports.WriteString("\t\"" + g.Module + "/internal/files\"\n")
+imports.WriteString("\t\"")
+		imports.WriteString(g.Module)
+		imports.WriteString("/internal/files\"\n")
 	}
 	imports.WriteString("\t\"gorm.io/gorm\"\n")
 
@@ -228,14 +232,28 @@ func (g *Generator) seederFieldLines(mode string) (lines, preamble string, needs
 			fkGo := toPascalCase(f.FKColumnName())
 			idsVar := lowerCamel(rel.Lower) + "IDs"
 			if !seenRel[idsVar] {
-				pre.WriteString("\tvar " + idsVar + " []string\n")
-				pre.WriteString("\tdb.Model(&models." + rel.Pascal + "{}).Pluck(\"id\", &" + idsVar + ")\n")
+pre.WriteString("\tvar ")
+				pre.WriteString(idsVar)
+				pre.WriteString(" []string\n")
+pre.WriteString("\tdb.Model(&models.")
+				pre.WriteString(rel.Pascal)
+				pre.WriteString("{}).Pluck(\"id\", &")
+				pre.WriteString(idsVar)
+				pre.WriteString(")\n")
 				seenRel[idsVar] = true
 			}
 			if mode == "faker" {
-				b.WriteString("\t\t\t" + fkGo + ": pickID(" + idsVar + "),\n")
+b.WriteString("\t\t\t")
+				b.WriteString(fkGo)
+				b.WriteString(": pickID(")
+				b.WriteString(idsVar)
+				b.WriteString("),\n")
 			} else {
-				b.WriteString("\t\t\t" + fkGo + ": firstID(" + idsVar + "),\n")
+b.WriteString("\t\t\t")
+				b.WriteString(fkGo)
+				b.WriteString(": firstID(")
+				b.WriteString(idsVar)
+				b.WriteString("),\n")
 			}
 			continue
 		}
@@ -330,7 +348,11 @@ func (g *Generator) seederFieldLines(mode string) (lines, preamble string, needs
 				}
 			}
 		}
-		b.WriteString("\t\t\t" + goField + ": " + val + ",\n")
+b.WriteString("\t\t\t")
+		b.WriteString(goField)
+		b.WriteString(": ")
+		b.WriteString(val)
+		b.WriteString(",\n")
 	}
 	return b.String(), pre.String(), needsTime, needsFiles
 }

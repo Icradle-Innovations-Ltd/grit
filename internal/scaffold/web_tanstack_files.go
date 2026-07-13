@@ -235,8 +235,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 `
 }
 
-func webTanStackRootRoute(opts Options) string {
-	return fmt.Sprintf(`import { createRootRoute, Outlet } from '@tanstack/react-router'
+func webTanStackRootRoute(_ Options) string {
+	return `import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 
@@ -251,7 +251,7 @@ export const Route = createRootRoute({
     </div>
   ),
 })
-`)
+`
 }
 
 func webTanStackIndexRoute(opts Options) string {
