@@ -408,7 +408,10 @@ func Run(opts Options) error {
 		} else {
 			spinner.Printf("  → Scaffolding Next.js web app...\n")
 			if err := writeWebFiles(root, opts); err != nil {
-				return fmt.Errorf("writing web files: %w", err)
+				return err
+			}
+			if err := writeWebFormFiles(root, opts); err != nil {
+				return err
 			}
 		}
 	}

@@ -239,9 +239,9 @@ func TestWriteGoModel_BasicFields(t *testing.T) {
 		{"text gorm tag", `gorm:"type:text"`},
 		{"Published field", "Published bool"},
 		{"Views field", "Views int"},
-		{"CreatedAt field", "CreatedAt time.Time"},
-		{"UpdatedAt field", "UpdatedAt time.Time"},
-		{"DeletedAt field", "gorm.DeletedAt"},
+		{"CreatedAt field", "CreatedAt"},
+		{"UpdatedAt field", "UpdatedAt"},
+		{"DeletedAt field", "DeletedAt"},
 		{"gorm import", `"gorm.io/gorm"`},
 		{"time import", `"time"`},
 	}

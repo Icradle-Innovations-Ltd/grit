@@ -14,7 +14,7 @@ import { api } from '@/lib/api'
 
 export interface %s {
   id: string
-%s
+%s  source_share_id?: string
   created_at: string
   updated_at: string
 }

@@ -122,11 +122,12 @@ func (g *Generator) writeGoModel(names Names) error {
 
 // %s represents a %s in the system.
 type %s struct {
-	ID        string         `+"`"+`gorm:"primarykey;size:36" json:"id"`+"`"+`
-%s	Version   int            `+"`"+`gorm:"not null;default:1" json:"version"`+"`"+`
-	CreatedAt time.Time      `+"`"+`json:"created_at"`+"`"+`
-	UpdatedAt time.Time      `+"`"+`json:"updated_at"`+"`"+`
-	DeletedAt gorm.DeletedAt `+"`"+`gorm:"index" json:"-"`+"`"+`
+	ID            string         `+"`"+`gorm:"primarykey;size:36" json:"id"`+"`"+`
+%s	SourceShareID *string        `+"`"+`gorm:"type:uuid;index" json:"source_share_id"`+"`"+`
+	Version       int            `+"`"+`gorm:"not null;default:1" json:"version"`+"`"+`
+	CreatedAt     time.Time      `+"`"+`json:"created_at"`+"`"+`
+	UpdatedAt     time.Time      `+"`"+`json:"updated_at"`+"`"+`
+	DeletedAt     gorm.DeletedAt `+"`"+`gorm:"index" json:"-"`+"`"+`
 }
 `, imports, names.Pascal, names.Lower, names.Pascal, structFields)
 
@@ -587,6 +588,7 @@ func (g *Generator) writeGoHandler(names Names) error {
 			fkFilters += fmt.Sprintf(".With(%q, c.Query(%q))", fk, fk)
 		}
 	}
+	fkFilters += `.With("source_share_id", c.Query("source_share_id"))`
 
 	r := strings.NewReplacer(
 		"{{FK_FILTERS}}", fkFilters,
@@ -1139,9 +1141,11 @@ func (g *Generator) writeTSTypes(names Names) error {
 	}
 	content += fmt.Sprintf(`export interface %s {
   id: string;
-%s  created_at: string;
+%s  source_share_id?: string;
+  created_at: string;
   updated_at: string;
 }
+
 `, names.Pascal, fields)
 
 	path := filepath.Join(g.Root, "packages", "shared", "types", names.Kebab+".ts")

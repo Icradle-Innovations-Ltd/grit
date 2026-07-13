@@ -644,6 +644,7 @@ func (h *FormShareHandler) PublicSubmit(c *gin.Context) {
 		}
 	}
 
+	body.Fields["source_share_id"] = share.ID
 	out, err := services.SubmitSharedForm(h.DB, share.ResourceName, body.Fields)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
