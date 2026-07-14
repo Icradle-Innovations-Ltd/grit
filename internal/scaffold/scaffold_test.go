@@ -862,7 +862,8 @@ func TestWriteFrontendTestFiles_KeyFilesExist(t *testing.T) {
 		filepath.Join(root, "apps", "admin", "__tests__", "utils.test.ts"),
 		// Playwright E2E
 		filepath.Join(root, "playwright.config.ts"),
-		filepath.Join(root, "e2e", "auth.spec.ts"),
+		filepath.Join(root, "e2e", "web_auth.spec.ts"),
+		filepath.Join(root, "e2e", "admin_auth.spec.ts"),
 		filepath.Join(root, "e2e", "admin.spec.ts"),
 	}
 	for _, f := range files {

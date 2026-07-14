@@ -22,13 +22,13 @@ func writeDockerFiles(root string, opts Options) error {
 		files[filepath.Join(root, "docker-compose.prod.yml")] = dockerComposeProd(opts)
 		files[filepath.Join(root, "apps", "api", "Dockerfile")] = dockerfileAPI()
 		if opts.ShouldIncludeWeb() {
-			files[filepath.Join(root, "apps", "web", "Dockerfile")] = dockerfileNextJS("web")
+			files[filepath.Join(root, "apps", "web", "Dockerfile")] = dockerfileNextJS(opts, "web")
 		}
 		if opts.ShouldIncludeAdmin() {
-			files[filepath.Join(root, "apps", "admin", "Dockerfile")] = dockerfileNextJS("admin")
+			files[filepath.Join(root, "apps", "admin", "Dockerfile")] = dockerfileNextJS(opts, "admin")
 		}
 		if opts.ShouldIncludeDocs() {
-			files[filepath.Join(root, "apps", "docs", "Dockerfile")] = dockerfileNextJS("docs")
+			files[filepath.Join(root, "apps", "docs", "Dockerfile")] = dockerfileNextJS(opts, "docs")
 		}
 	}
 
@@ -112,12 +112,11 @@ services:
       # collisions with Portainer (9000) and a handful of monitoring
       # stacks that grab 9000/9001. Container still listens on 9000/9001
       # inside the Docker network.
-      #
-      # Bound to all interfaces (not 127.0.0.1) so a phone/emulator on your LAN
-      # can load uploaded images: stored URLs point at this host:9002 and the
-      # Expo app rewrites "localhost" to your dev IP (apps/expo/lib/images.ts).
-      - "9002:9000"
-      - "9003:9001"
+      # Bound to loopback to prevent exposing default credentials (minioadmin)
+      # to the local network. If you need a phone/emulator to reach MinIO,
+      # opt-in by binding to "0.0.0.0:9002:9000" and change the default creds.
+      - "127.0.0.1:9002:9000"
+      - "127.0.0.1:9003:9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
@@ -426,7 +425,14 @@ CMD ["./server"]
 `
 }
 
-func dockerfileNextJS(app string) string {
+func dockerfileNextJS(opts Options, app string) string {
+	var filter string
+	if app == "docs" {
+		filter = opts.ProjectName + "-docs"
+	} else {
+		filter = "@" + opts.ProjectName + "/" + app
+	}
+
 	return fmt.Sprintf(`# Build stage
 FROM node:22-alpine AS base
 
@@ -483,7 +489,7 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "apps/%s/server.js"]
-`, app, app, app, app, app, app, app, app, app, app, app)
+`, app, app, app, app, filter, app, app, app, app, app, app)
 }
 
 func dockerIgnore() string {

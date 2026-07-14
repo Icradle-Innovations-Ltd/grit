@@ -287,10 +287,11 @@ function downloadBlob(blob: Blob, filename: string) {
 
 function csvEscape(value: unknown): string {
   const s = value === null || value === undefined ? "" : String(value);
-  if (s.includes(",") || s.includes("\"") || s.includes("\n")) {
-    return "\"" + s.replace(/"/g, "\"\"") + "\"";
+  const safe = /^[\t\r ]*[=+\-@]/.test(s) ? "'" + s : s;
+  if (safe.includes(",") || safe.includes("\"") || safe.includes("\n")) {
+    return "\"" + safe.replace(/"/g, "\"\"") + "\"";
   }
-  return s;
+  return safe;
 }
 
 function getNested(obj: Record<string, unknown>, path: string): unknown {

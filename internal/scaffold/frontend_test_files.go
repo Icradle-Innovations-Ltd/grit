@@ -26,8 +26,13 @@ func writeFrontendTestFiles(root string, opts Options) error {
 	}
 
 	if opts.ShouldIncludeWeb() || opts.ShouldIncludeAdmin() {
-		files[filepath.Join(root, "playwright.config.ts")] = playwrightConfig()
-		files[filepath.Join(root, "e2e", "auth.spec.ts")] = e2eAuthSpec()
+		files[filepath.Join(root, "playwright.config.ts")] = playwrightConfig(opts)
+	}
+	if opts.ShouldIncludeWeb() {
+		files[filepath.Join(root, "e2e", "web_auth.spec.ts")] = e2eWebSpec()
+	}
+	if opts.ShouldIncludeAdmin() {
+		files[filepath.Join(root, "e2e", "admin_auth.spec.ts")] = e2eAdminAuthSpec()
 		files[filepath.Join(root, "e2e", "admin.spec.ts")] = e2eAdminSpec()
 	}
 
@@ -311,8 +316,29 @@ describe("truncate", () => {
 `
 }
 
-func playwrightConfig() string {
-	return `import { defineConfig, devices } from "@playwright/test";
+func playwrightConfig(opts Options) string {
+	webServers := "webServer: [\n"
+	if opts.ShouldIncludeWeb() {
+		webServers += `    {
+      command: "pnpm --filter web dev",
+      url: "http://localhost:3000",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+`
+	}
+	if opts.ShouldIncludeAdmin() {
+		webServers += `    {
+      command: "pnpm --filter admin dev",
+      url: "http://localhost:3001",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+`
+	}
+	webServers += "  ],"
+
+	return fmt.Sprintf(`import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -337,36 +363,15 @@ export default defineConfig({
     },
   ],
   // Automatically start the dev servers before running tests
-  webServer: [
-    {
-      command: "pnpm --filter web dev",
-      url: "http://localhost:3000",
-      reuseExistingServer: !process.env.CI,
-      timeout: 120_000,
-    },
-    {
-      command: "pnpm --filter admin dev",
-      url: "http://localhost:3001",
-      reuseExistingServer: !process.env.CI,
-      timeout: 120_000,
-    },
-  ],
+  %s
 });
-`
+`, webServers)
 }
 
-func e2eAuthSpec() string {
+func e2eWebSpec() string {
 	return `import { test, expect } from "@playwright/test";
 
 const BASE = "http://localhost:3000";
-const ADMIN = "http://localhost:3001";
-
-const testUser = {
-  firstName: "E2E",
-  lastName: "Tester",
-  email: ` + "`" + `e2e_${Date.now()}@example.com` + "`" + `,
-  password: "testpassword123",
-};
 
 test.describe("Web — Auth flow", () => {
   test("home page loads", async ({ page }) => {
@@ -375,6 +380,13 @@ test.describe("Web — Auth flow", () => {
     await expect(page.locator("nav")).toBeVisible();
   });
 });
+`
+}
+
+func e2eAdminAuthSpec() string {
+	return `import { test, expect } from "@playwright/test";
+
+const ADMIN = "http://localhost:3001";
 
 test.describe("Admin — Login flow", () => {
   test("redirects unauthenticated users to login", async ({ page }) => {

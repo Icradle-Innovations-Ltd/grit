@@ -1,0 +1,9 @@
+services:
+  website:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: grit-official-website
+    restart: unless-stopped
+    ports:
+      - "3003:3000"
